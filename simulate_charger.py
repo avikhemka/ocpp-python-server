@@ -1,5 +1,6 @@
 import asyncio
 import websockets
+import json
 from ocpp.v201 import call
 
 async def simulate_charger():
@@ -12,7 +13,8 @@ async def simulate_charger():
                 },
                 reason="PowerUp"
             )
-            await websocket.send(request.to_json())
+            request_dict = request.to_dict()
+            await websocket.send(json.dumps(request_dict))
             response = await websocket.recv()
             print(f"Received response: {response}")
 

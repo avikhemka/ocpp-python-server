@@ -35,6 +35,7 @@ async def on_connect(websocket, path):
                         requested_protocols)
         return await websocket.close()
 
+    logging.info("New connection from %s", websocket.remote_address)
     charge_point_id = path.strip('/')
     cp_instance = ChargePoint(charge_point_id, websocket)
 
