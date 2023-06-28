@@ -1,24 +1,34 @@
 import asyncio
+import logging
 import websockets
-import json
+
 from ocpp.v201 import call
+from ocpp.v201 import ChargePoint as cp
 
-async def simulate_charger():
-    async with websockets.connect('ws://192.168.1.119:9000/', subprotocols=['ocpp2.0.1']) as websocket:
-        try:
-            request = call.BootNotificationPayload(
-                charging_station={
-                    'model': 'Wallbox XYZ',
-                    'vendor_name': 'anewone'
-                },
-                reason="PowerUp"
-            )
-            request_dict = request.to_dict()
-            await websocket.send(json.dumps(request_dict))
-            response = await websocket.recv()
-            print(f"Received response: {response}")
+logging.basicConfig(level=logging.INFO)
 
-        except Exception as e:
-            print(f"Error occurred: {e}")
+class Charger(cp):
+    async def send_boot_notification(self):
+        request = call.BootNotificationPayload(
+            charging_station={
+                'model': 'Wallbox XYZ',
+                'vendor_name': 'anewone'
+            },
+            reason="PowerUp"
+        )
+        response = await self.call(request)
 
-asyncio.run(simulate_charger())
+        if response.status == "Accepted":
+            print("Connected to central system.")
+
+async def main():
+    async with websockets.connect(
+            'ws://192.168.1.119:9000/CP_1',
+            subprotocols=['ocpp2.0.1']
+    ) as ws:
+        charger = Charger('CP_1', ws)
+
+        await asyncio.gather(charger.start(), charger.send_boot_notification())
+
+if __name__ == '__main__':
+    asyncio.run(main())
