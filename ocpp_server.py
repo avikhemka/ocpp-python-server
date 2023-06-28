@@ -27,6 +27,10 @@ async def on_connect(websocket, path):
     except Exception as e:
         logger.exception(f"Error occurred: {e}")
 
-server = serve(on_connect, "0.0.0.0", 9000)
-asyncio.get_event_loop().run_until_complete(server)
-asyncio.get_event_loop().run_forever()
+try:
+    server = serve(on_connect, "0.0.0.0", 9000)
+    print("OCPP server started. Awaiting connections...")
+    asyncio.get_event_loop().run_until_complete(server)
+    asyncio.get_event_loop().run_forever()
+except Exception as e:
+    print(f"Failed to start OCPP server: {e}")
