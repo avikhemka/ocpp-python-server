@@ -1,55 +1,57 @@
 import asyncio
 import logging
-import websockets
 from datetime import datetime
 
 from ocpp.routing import on
 from ocpp.v201 import ChargePoint as cp
 from ocpp.v201 import call_result
 from ocpp.v201.enums import RegistrationStatusType
+from ocpp.v201 import call
+
+import websockets
 
 logging.basicConfig(level=logging.INFO)
 
 class ChargePoint(cp):
+    async def send_boot_notification(self, conf):
+        await self.send_call_result('BootNotification', conf)
+
     @on('BootNotification')
-    async def on_boot_notification(self, charging_station, reason, **kwargs):
+    def on_boot_notification(self, charging_station, reason, **kwargs):
+        print(f"Received boot notification from {charging_station.vendor_name}, model {charging_station.model}")
         return call_result.BootNotificationPayload(
             current_time=datetime.utcnow().isoformat(),
             interval=10,
-            status=RegistrationStatusType.accepted
+            status=RegistrationStatusType.accepted,
+        )
+
+    @on(call.AuthorizePayload)
+    def on_authorize(self, id_tag, **kwargs):
+        print(f"Received authorize request for tag: {id_tag}")
+
+        # Implement your authorization logic here
+
+        return call_result.AuthorizePayload(
+            status="Accepted"  # Or "Rejected" based on your authorization logic
+        )
+
+    @on(call.HeartbeatPayload)
+    def on_heartbeat(self, **kwargs):
+        print("Received heartbeat request")
+
+        return call_result.HeartbeatPayload(
+            current_time=datetime.utcnow().isoformat()
         )
 
 async def on_connect(websocket, path):
-    try:
-        requested_protocols = websocket.request_headers['Sec-WebSocket-Protocol']
-    except KeyError:
-        logging.info("Client hasn't requested any Subprotocol. Closing Connection")
-        return await websocket.close()
-
-    if websocket.subprotocol:
-        logging.info("Protocols Matched: %s", websocket.subprotocol)
-    else:
-        logging.warning('Protocols Mismatched | Expected Subprotocols: %s,'
-                        ' but client supports  %s | Closing connection',
-                        websocket.available_subprotocols,
-                        requested_protocols)
-        return await websocket.close()
-
-    logging.info("New connection from %s", websocket.remote_address)
+    logging.info('WebSocket Server Started')
     charge_point_id = path.strip('/')
-    cp_instance = ChargePoint(charge_point_id, websocket)
+    cp = ChargePoint(charge_point_id, websocket)
 
-    await cp_instance.start()
+    await cp.start()
 
-async def main():
-    server = await websockets.serve(
-        on_connect,
-        '0.0.0.0',
-        9000,
-        subprotocols=['ocpp2.0.1']
-    )
-    logging.info("WebSocket Server Started")
-    await server.wait_closed()
 
-if __name__ == '__main__':
-    asyncio.run(main())
+server = websockets.serve(on_connect, '0.0.0.0', 9000, subprotocols=['ocpp2.0.1'])
+
+asyncio.get_event_loop().run_until_complete(server)
+asyncio.get_event_loop().run_forever()
