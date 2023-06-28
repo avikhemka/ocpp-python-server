@@ -4,7 +4,7 @@ import websockets
 
 async def simulate_charger():
     try:
-        async with websockets.connect('ws://192.168.1.119:9000/') as websocket:
+        async with websockets.connect('ws://192.168.1.131:9000/') as websocket:
             try:
                 # Send a BootNotification message
                 boot_notification_request = {
