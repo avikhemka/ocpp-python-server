@@ -16,7 +16,7 @@ except ModuleNotFoundError:
 from ocpp.routing import on
 from ocpp.v16 import ChargePoint as cp
 from ocpp.v16 import call_result
-from ocpp.v16.enums import Action, AuthorizationStatus, ErrorCode, RegistrationStatus
+from ocpp.v16.enums import Action, AuthorizationStatus, RegistrationStatus
 
 logging.basicConfig(level=logging.INFO)
 
