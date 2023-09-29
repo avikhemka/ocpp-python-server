@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime
+from ocpp.v16 import call_result
 
 try:
     import websockets
@@ -32,6 +33,11 @@ class ChargePoint(cp):
             status=RegistrationStatus.accepted,
         )
 
+    @on(Action.Heartbeat)
+    def on_heartbeat(self):
+        return call_result.HeartbeatPayload(
+            current_time=datetime.utcnow().isoformat()
+        )
 
 async def on_connect(websocket, path):
     """For every new charge point that connects, create a ChargePoint
