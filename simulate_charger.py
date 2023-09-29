@@ -1,9 +1,10 @@
 import asyncio
 import logging
 from ocpp.v201 import ChargePoint as cp
-from ocpp.v201 import call
 import websockets
+import ocpp.v201.call as call
 
+print(help(call.AuthorizePayload))
 logging.basicConfig(level=logging.INFO)
 
 class Charger(cp):
@@ -21,7 +22,8 @@ class Charger(cp):
             print("Connected to central system.")
 
     async def send_authorize(self, id_tag):
-        request = call.AuthorizePayload(id_tag=id_tag)
+        token = {"id_token_type": "ISO14443", "id_token": id_tag}
+        request = call.AuthorizePayload(id_token=token)
         response = await self.call(request)
 
         if response.status == "Accepted":

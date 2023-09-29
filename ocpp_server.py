@@ -18,7 +18,7 @@ class ChargePoint(cp):
 
     @on('BootNotification')
     def on_boot_notification(self, charging_station, reason, **kwargs):
-        print(f"Received boot notification from {charging_station.vendor_name}, model {charging_station.model}")
+        print(f"Received boot notification from {charging_station['vendor_name']}, model {charging_station['model']}")
         return call_result.BootNotificationPayload(
             current_time=datetime.utcnow().isoformat(),
             interval=10,
