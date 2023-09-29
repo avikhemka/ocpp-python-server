@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from datetime import datetime
-from ocpp.v16 import call_result
 
 try:
     import websockets
