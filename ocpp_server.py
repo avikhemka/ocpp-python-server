@@ -16,7 +16,7 @@ except ModuleNotFoundError:
 from ocpp.routing import on
 from ocpp.v16 import ChargePoint as cp
 from ocpp.v16 import call_result
-from ocpp.v16.enums import Action, RegistrationStatus
+from ocpp.v16.enums import Action, AuthorizationStatus, ErrorCode, RegistrationStatus
 
 logging.basicConfig(level=logging.INFO)
 
@@ -37,6 +37,31 @@ class ChargePoint(cp):
         return call_result.HeartbeatPayload(
             current_time=datetime.utcnow().isoformat()
         )
+
+    @on(Action.StatusNotification)
+    def on_status_notification(self, **kwargs):
+        print('Received Status Notification')
+        return call_result.StatusNotificationPayload()
+
+    @on(Action.StartTransaction)
+    def on_start_transaction(self, **kwargs):
+        print('Received Start Transaction')
+        return call_result.StartTransactionPayload(
+            transaction_id=1,
+            id_tag_info={
+                'status': AuthorizationStatus.accepted
+            }
+        )
+
+    @on(Action.StopTransaction)
+    def on_stop_transaction(self, **kwargs):
+        print('Received Stop Transaction')
+        return call_result.StopTransactionPayload(
+            id_tag_info={
+                'status': AuthorizationStatus.accepted
+            }
+        )
+
 
 async def on_connect(websocket, path):
     """For every new charge point that connects, create a ChargePoint
