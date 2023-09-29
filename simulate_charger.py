@@ -37,7 +37,7 @@ class Charger(cp):
 
 async def main():
     async with websockets.connect(
-        'ws://192.168.1.119:9000/CP_1',
+        'ws://175.41.149.142:9000/CP_1',  # Changed to AWS IP
         subprotocols=['ocpp2.0.1']
     ) as ws:
         charger = Charger('CP_1', ws)
